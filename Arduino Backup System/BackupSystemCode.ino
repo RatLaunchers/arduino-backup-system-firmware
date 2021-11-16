@@ -2,7 +2,7 @@
  * Backup system for CanSat
  * Has not been tested yet
  * @author Suyu
- * @version 0.1 
+ * @version 0.2
  * 
  * SD Card Module Wiring:
  *  CS      -- 10
@@ -28,7 +28,14 @@
 #include <SD.h>
 #include <SPI.h>
 
-#define DHT_PIN 9
+#define DHT_PIN 8
+#define BUZZER_PIN 9
+#define ERROR_BEEP_FREQ 500
+#define BEEP_DURATION 500
+
+#define SD_ERROR 1
+#define FILE_ERROR 2
+#define BMP_ERROR 3
 
 DHT dht(DHT_PIN, DHT11);
 Adafruit_BMP280 bmp;  // no parameters defaults to using I2C
@@ -41,19 +48,19 @@ void setup() {
     // initialize SD and file
     if (!SD.begin()) {
         Serial.println("SD card error");
-        while (1);
+        errorBeep(SD_ERROR);
     }
     dataFile = SD.open("data.txt", FILE_WRITE);
     if (!dataFile) {
         Serial.println("File opening error");
-        while (1);
+        errorBeep(FILE_ERROR);
     }
 
     // initialize sensors
     dht.begin();
     if (!bmp.begin()) {
         Serial.println("BMP280 error");
-        while (1);
+        errorBeep(BMP_ERROR);
     }
 
     // add this to separate data from anything previously written in the file
@@ -72,4 +79,13 @@ void loop() {
     dataFile.println(bmp.readPressure());
     dataFile.flush();  // physically save data to SD card
     delay(1000);
+}
+
+void errorBeep(byte errorCode){
+    while(1){
+        tone(BUZZER_PIN, ERROR_BEEP_FREQ);
+        delay(BEEP_DURATION*errorCode);
+        noTone(BUZZER_PIN);
+        delay(BEEP_DURATION);
+    }
 }
