@@ -40,12 +40,12 @@ void setup() {
 
     // initialize SD and file
     if (!SD.begin()) {
-        Serial.println("initialization failed!");
+        Serial.println("SD card error");
         while (1);
     }
     dataFile = SD.open("data.txt", FILE_WRITE);
     if (!dataFile) {
-        Serial.println("Error opening file");
+        Serial.println("File opening error");
         while (1);
     }
 
