@@ -1,24 +1,18 @@
-from gps import *
+from gps3.agps3threaded import AGPS3mechanism
 import time
 from datetime import datetime
 import csv
 
-gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
-
-def getCoords():
-    nx = gpsd.next()
-    if nx['class'] == 'TPV':
-        return getattr(nx, 'lat', "Unknown"), getattr(nx, 'lon', "Unknown")
-    return None
-
 print("logging to sensorLog.csv")
 print("press ctrl+c to stop execution")
 
+agps_thread = AGPS3mechanism()
+agps_thread.stream_data()
+agps_thread.run_thread()
+
 while True:
-    coords = getCoords()
-    if coords is not None:
-        log = open("sensorLog.csv", 'a', newline='')
-        writer = csv.writer(log)
-        writer.writerow([str(datetime.now()), coords[0], coords[1]])
-        log.close()
-    time.sleep(0.2)
+    log = open("sensorLog.csv", 'a', newline='')
+    writer = csv.writer(log)
+    writer.writerow([str(datetime.now()), agps_thread.data_stream.lat, agps_thread.data_stream.lon])
+    log.close()
+    time.sleep(1)
