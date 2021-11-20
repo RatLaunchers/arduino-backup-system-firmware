@@ -21,4 +21,4 @@ while True:
         writer = csv.writer(log)
         writer.writerow([str(datetime.now()), coords[0], coords[1]])
         log.close()
-    time.sleep(5)
+    time.sleep(0.2)
