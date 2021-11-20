@@ -43,9 +43,9 @@ def compass_raw(addr):
 
 def pressure():
     # read 24bit 2 compliment from 0x29-0x2a
-    raw = bus1.read_byte_data(compass_deviceAddress, 0x2a)*256**2
-    raw += bus1.read_byte_data(compass_deviceAddress, 0x29)*256
-    raw += bus1.read_byte_data(compass_deviceAddress, 0x28)
+    raw = bus1.read_byte_data(pressure_deviceAddress, 0x2a)*256**2
+    raw += bus1.read_byte_data(pressure_deviceAddress, 0x29)*256
+    raw += bus1.read_byte_data(pressure_deviceAddress, 0x28)
     # convert 2s compliment
     if raw & (1 << 23) != 0:
         raw = raw - (1 << 24)
