@@ -6,16 +6,16 @@ from gps3.agps3threaded import AGPS3mechanism
 import smbus2 as smbus
 
 # log config variables
-LOG_FREQUENCY = 1 #how often to log in seconds
+LOG_FREQUENCY = 1  # how often to log in seconds
 
 # compass config vars
-compass_reg_a = 0 #compass config register addresses
+compass_reg_a = 0  # compass config register addresses
 compass_reg_b = 0x01
 compass_reg_mode = 0x02
-compass_xaxis = 0x03 #axis msb registers
+compass_xaxis = 0x03  # axis msb registers
 compass_yaxis = 0x05
 compass_zaxis = 0x07
-compass_deviceAddress = 0x1e #sensor address
+compass_deviceAddress = 0x1e  # sensor address
 declination = math.radians(-10.27)
 
 pressure_deviceAddress = 0x5d
@@ -28,8 +28,8 @@ bus.write_byte_data(compass_deviceAddress, compass_reg_a, 0x70)
 bus.write_byte_data(compass_deviceAddress, compass_reg_b, 0xa0)
 bus.write_byte_data(compass_deviceAddress, compass_reg_mode, 0)
 
-bus1.write_byte_data(pressure_deviceAddress, 0x21, 0b100) #reset pressure sensor
-bus1.write_byte_data(pressure_deviceAddress, 0x5d, 0x20, 0b11001000) #turn on and run at 25hz
+bus1.write_byte_data(pressure_deviceAddress, 0x21, 0b100)  # reset pressure sensor
+bus1.write_byte_data(pressure_deviceAddress, 0x5d, 0x20, 0b11000000)  # turn on and run at 25hz
 
 
 def compass_raw(addr):
