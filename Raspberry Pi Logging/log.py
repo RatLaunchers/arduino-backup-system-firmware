@@ -18,11 +18,18 @@ compass_zaxis = 0x07
 compass_deviceAddress = 0x1e #sensor address
 declination = math.radians(-10.27)
 
+pressure_deviceAddress = 0x5d
+
+
 bus = smbus.SMBus(1)
+bus1 = smbus.SMBus(0)
 
 bus.write_byte_data(compass_deviceAddress, compass_reg_a, 0x70)
 bus.write_byte_data(compass_deviceAddress, compass_reg_b, 0xa0)
 bus.write_byte_data(compass_deviceAddress, compass_reg_mode, 0)
+
+bus1.write_byte_data(pressure_deviceAddress, 0x21, 0b100) #reset pressure sensor
+bus1.write_byte_data(pressure_deviceAddress, 0x5d, 0x20, 0b10100000) #turn on and run at 7hz
 
 
 def compass_raw(addr):
@@ -32,6 +39,18 @@ def compass_raw(addr):
     if(value > 32768):
         value = value - 65536
     return value
+
+
+def pressure():
+    # read 24bit 2 compliment from 0x29-0x2a
+    raw = bus1.read_byte_data(compass_deviceAddress, 0x2a)*256**2
+    raw += bus1.read_byte_data(compass_deviceAddress, 0x29)*256
+    raw += bus1.read_byte_data(compass_deviceAddress, 0x28)
+    # convert 2s compliment
+    if raw & (1 << 23) != 0:
+        raw = raw - (1 << 24)
+    # pressure in hPa
+    return raw / 4096.0
 
 
 def get_heading():
@@ -62,7 +81,8 @@ while True:
         str(datetime.now()),
         agps_thread.data_stream.lat,
         agps_thread.data_stream.lon,
-        get_heading()
+        get_heading(),
+        pressure()
         ]
     writer.writerow(data)
     log.close()
