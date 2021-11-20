@@ -1,7 +1,52 @@
-from gps3.agps3threaded import AGPS3mechanism
 import time
 from datetime import datetime
+import math
 import csv
+from gps3.agps3threaded import AGPS3mechanism
+import smbus2 as smbus
+
+# log config variables
+LOG_FREQUENCY = 1 #how often to log in seconds
+
+# compass config vars
+compass_reg_a = 0 #compass config register addresses
+compass_reg_b = 0x01
+compass_reg_mode = 0x02
+compass_xaxis = 0x03 #axis msb registers
+compass_yaxis = 0x05
+compass_zaxis = 0x07
+compass_deviceAddress = 0x1e #sensor address
+declination = math.radians(-10.27)
+
+bus = smbus.SMBus(1)
+
+bus.write_byte_data(compass_deviceAddress, compass_reg_a, 0x70)
+bus.write_byte_data(compass_deviceAddress, compass_reg_b, 0xa0)
+bus.write_byte_data(compass_deviceAddress, compass_reg_mode, 0)
+
+
+def compass_raw(addr):
+    high = bus.read_byte_data(compass_deviceAddress, addr)
+    low = bus.read_byte_data(compass_deviceAddress, addr+1)
+    value = ((high << 8) | low)
+    if(value > 32768):
+        value = value - 65536
+    return value
+
+
+def get_heading():
+    x = compass_raw(compass_xaxis)
+    y = compass_raw(compass_yaxis)
+    z = compass_raw(compass_zaxis)
+
+    heading = math.atan2(y, x) + declination
+
+    if heading > 2*math.pi:
+        heading = heading - 2*math.pi
+    if heading < 0:
+        heading = heading + 2*math.pi
+    return int(heading * 180/math.pi)
+
 
 print("logging to sensorLog.csv")
 print("press ctrl+c to stop execution")
@@ -13,10 +58,12 @@ agps_thread.run_thread()
 while True:
     log = open("sensorLog.csv", 'a', newline='')
     writer = csv.writer(log)
-    writer.writerow([
+    data = [
         str(datetime.now()),
         agps_thread.data_stream.lat,
-        agps_thread.data_stream.lon
-        ])
+        agps_thread.data_stream.lon,
+        get_heading()
+        ]
+    writer.writerow(data)
     log.close()
-    time.sleep(1)
+    time.sleep(LOG_FREQUENCY)
