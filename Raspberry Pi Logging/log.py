@@ -4,6 +4,7 @@ import math
 import csv
 from gps3.agps3threaded import AGPS3mechanism
 import smbus2 as smbus
+import Adafruit_DHT as dht
 
 # log config variables
 LOG_FREQUENCY = 1  # how often to log in seconds
@@ -19,6 +20,9 @@ compass_deviceAddress = 0x1e  # sensor address
 declination = math.radians(-10.27)
 
 pressure_deviceAddress = 0x5d
+
+dht_pin = 18
+dht_sensor = dht.DHT11
 
 
 bus = smbus.SMBus(1)
@@ -77,12 +81,15 @@ agps_thread.run_thread()
 while True:
     log = open("sensorLog.csv", 'a', newline='')
     writer = csv.writer(log)
+    humidity, temp = dht.read_retry(dht_sensor, dht_pin)
     data = [
         str(datetime.now()),
         agps_thread.data_stream.lat,
         agps_thread.data_stream.lon,
         get_heading(),
-        pressure()
+        pressure(),
+        humidity,
+        temp
         ]
     writer.writerow(data)
     log.close()
