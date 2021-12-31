@@ -5,6 +5,7 @@ import csv
 from gps3.agps3threaded import AGPS3mechanism
 import smbus2 as smbus
 import Adafruit_DHT as dht
+import .camera
 
 # log config variables
 LOG_FREQUENCY = 1  # how often to log in seconds
@@ -93,4 +94,6 @@ while True:
         ]
     writer.writerow(data)
     log.close()
+    if datetime.now().second % 10 == 0:
+        camera.jpg()
     time.sleep(LOG_FREQUENCY)
