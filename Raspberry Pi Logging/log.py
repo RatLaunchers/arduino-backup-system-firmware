@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 import math
 import csv
+import os
 from gps3.agps3threaded import AGPS3mechanism
 import smbus2 as smbus
 import Adafruit_DHT as dht
@@ -25,16 +26,23 @@ pressure_deviceAddress = 0x5d
 dht_pin = 18
 dht_sensor = dht.DHT11
 
-
 bus = smbus.SMBus(1)
-bus1 = smbus.SMBus(0)
 
 bus.write_byte_data(compass_deviceAddress, compass_reg_a, 0x70)
 bus.write_byte_data(compass_deviceAddress, compass_reg_b, 0xa0)
 bus.write_byte_data(compass_deviceAddress, compass_reg_mode, 0)
 
-bus1.write_byte_data(pressure_deviceAddress, 0x21, 0b100)  # reset pressure sensor
-bus1.write_byte_data(pressure_deviceAddress, 0x20, 0b11000000)  # turn on and run at 25hz
+bus.write_byte_data(pressure_deviceAddress, 0x21, 0b100)  # reset pressure sensor
+bus.write_byte_data(pressure_deviceAddress, 0x20, 0b11000000)  # turn on and run at 25hz
+
+
+def jpg():
+    time = datetime.now().strftime("%y-%m-%d %H:%M:%S")
+    cmd = os.system("libcamera-jpeg -o \"/data/" + time + ".jpg\"")
+    if os.path.exists("/data/" + time + ".jpg") and cmd == 0:
+        return "/data/" + time + ".jpg"
+    else:
+        return None
 
 
 def compass_raw(addr):
@@ -48,9 +56,9 @@ def compass_raw(addr):
 
 def pressure():
     # read 24bit 2 compliment from 0x29-0x2a
-    raw = bus1.read_byte_data(pressure_deviceAddress, 0x2a)*256**2
-    raw += bus1.read_byte_data(pressure_deviceAddress, 0x29)*256
-    raw += bus1.read_byte_data(pressure_deviceAddress, 0x28)
+    raw = bus.read_byte_data(pressure_deviceAddress, 0x2a)*256**2
+    raw += bus.read_byte_data(pressure_deviceAddress, 0x29)*256
+    raw += bus.read_byte_data(pressure_deviceAddress, 0x28)
     # convert 2s compliment
     if raw & (1 << 23) != 0:
         raw = raw - (1 << 24)
